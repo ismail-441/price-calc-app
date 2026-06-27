@@ -29,9 +29,14 @@
     background:var(--ink);
     display:flex;
     align-items:center;
-    gap:10px;
-    padding:0 16px;
+    justify-content:space-between;
+    padding:0 12px 0 16px;
     z-index:10;
+  }
+  .topbar-left{
+    display:flex;
+    align-items:center;
+    gap:10px;
   }
   .topbar img{
     width:26px;
@@ -46,6 +51,33 @@
     color:var(--paper);
     letter-spacing:0.2px;
   }
+  .exit-btn{
+    background:none;
+    border:none;
+    color:var(--paper);
+    font-family:'Inter', sans-serif;
+    font-size:22px;
+    line-height:1;
+    padding:8px 10px;
+    cursor:pointer;
+    opacity:0.85;
+  }
+  .exit-btn:active{ opacity:1; }
+  .exit-hint{
+    position:fixed;
+    top:64px; left:0; right:0;
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--paper);
+    background:var(--ink);
+    padding:6px 0;
+    z-index:9;
+    opacity:0;
+    transition:opacity 0.25s ease;
+    pointer-events:none;
+  }
+  .exit-hint.show{ opacity:0.95; }
 
   body{
     margin:0;
@@ -203,9 +235,13 @@
 <body>
 
   <header class="topbar">
-    <img src="icon-192.png" alt="">
-    <span>Bill Calculator</span>
+    <div class="topbar-left">
+      <img src="icon-192.png" alt="">
+      <span>Bill Calculator</span>
+    </div>
+    <button class="exit-btn" onclick="attemptExit()" aria-label="Exit app">&#10005;</button>
   </header>
+  <div class="exit-hint" id="exitHint">use your phone's back button to exit</div>
 
   <div class="receipt">
     <div class="store">
@@ -349,6 +385,13 @@
       html += `<span style="width:${w}px;height:${h}px;"></span>`;
     }
     barcode.innerHTML = html;
+  }
+
+  function attemptExit() {
+    window.close();
+    const hint = document.getElementById("exitHint");
+    hint.classList.add("show");
+    setTimeout(() => hint.classList.remove("show"), 2500);
   }
 
   drawBarcode();
