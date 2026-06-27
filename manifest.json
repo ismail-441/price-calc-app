@@ -1,6 +1,6 @@
 {
-  "name": "Price Calculator",
-  "short_name": "PriceCalc",
+  "name": "Bill Calculator",
+  "short_name": "BillCalc",
   "description": "Itemised price calculator with live discount and tax breakdown",
   "start_url": "./index.html",
   "scope": "./",
