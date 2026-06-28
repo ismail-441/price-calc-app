@@ -61,7 +61,7 @@
   /* ---------- hamburger trigger ---------- */
   .menu-btn{
     position:fixed;
-    top:20px; left:20px;
+    top:16px; left:12px;
     width:44px; height:44px;
     border-radius:14px;
     background:var(--surface);
@@ -72,13 +72,13 @@
     align-items:center;
     justify-content:center;
     cursor:pointer;
-    z-index:30;
+    z-index:1000;
   }
   .menu-btn span{ width:18px; height:2px; background:var(--ink); border-radius:2px; margin:2px 0; }
 
   /* ---------- drawer ---------- */
   .overlay{
-    position:fixed; inset:0;
+    position:fixed; top:0; left:0; right:0; bottom:0;
     background:var(--overlay);
     opacity:0;
     pointer-events:none;
@@ -246,8 +246,9 @@
     padding:14px 16px;
     margin-top:14px;
     display:flex;
-    flex-direction:column;
-    gap:2px;
+    flex-direction:row;
+    justify-content:space-between;
+    align-items:baseline;
   }
   .total-box .cap{
     font-size:11px;
@@ -274,20 +275,35 @@
   .status.error{ color:var(--warn); }
 
   /* ---------- history ---------- */
+  /* ---------- history ---------- */
   .history{
     margin-top:16px;
     background:var(--surface);
     border-radius:22px;
     box-shadow:var(--shadow);
-    padding:18px 20px 8px;
+    padding:18px 20px 16px;
   }
   .history-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .history-head .label{
     font-size:11.5px;
     font-weight:700;
     letter-spacing:1px;
     text-transform:uppercase;
     color:var(--ink-faint);
-    margin-bottom:10px;
+  }
+  .clear-btn{
+    background:none;
+    border:none;
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--warn);
+    cursor:pointer;
+    padding:2px 0;
   }
   .hist-empty{
     font-size:13px;
@@ -305,18 +321,60 @@
   .hist-item:last-child{ border-bottom:none; }
   .hist-main{ font-size:13.5px; font-weight:600; font-family:'JetBrains Mono', monospace; }
   .hist-sub{ font-size:11px; color:var(--ink-faint); margin-top:2px; font-family:'Plus Jakarta Sans', sans-serif; }
-  .hist-extra{ max-height:0; overflow:hidden; transition:max-height 0.3s ease; }
-  .hist-extra.open{ max-height:600px; }
-  .hist-toggle{
+  .show-all-btn{
     width:100%;
-    background:none;
+    background:var(--bg);
     border:none;
-    padding:10px 0 12px;
-    font-size:12px;
+    border-radius:12px;
+    padding:11px 0;
+    margin-top:10px;
+    font-size:12.5px;
     font-weight:700;
     color:var(--accent);
     cursor:pointer;
-    text-align:center;
+  }
+
+  /* ---------- history page (full-screen push) ---------- */
+  .history-page{
+    position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    background:var(--bg);
+    transform:translateX(100%);
+    transition:transform 0.32s ease;
+    z-index:1100;
+    overflow-y:auto;
+  }
+  .history-page.open{ transform:translateX(0); }
+  .history-page-header{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:18px 18px;
+    background:var(--surface);
+    box-shadow:var(--shadow);
+    position:sticky;
+    top:0;
+  }
+  .back-btn{
+    background:var(--bg);
+    border:none;
+    width:38px; height:38px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .history-page-header h2{
+    font-size:17px;
+    font-weight:800;
+    margin:0;
+  }
+  .history-page-body{
+    padding:18px 20px 40px;
+    max-width:420px;
+    margin:0 auto;
   }
 </style>
 </head>
@@ -338,10 +396,18 @@
     </div>
 
     <div class="drawer-label">Menu</div>
-    <button class="drawer-item" id="historyNavBtn"><span class="ico">🕘</span>History</button>
-    <button class="drawer-item drawer-exit" id="exitBtn"><span class="ico">⏻</span>Exit</button>
+    <button class="drawer-item" id="historyNavBtn"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 16 14"></polyline></svg></span>History</button>
+    <button class="drawer-item drawer-exit" id="exitBtn"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"></path><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path></svg></span>Exit</button>
     <div class="exit-hint" id="exitHint" style="visibility:hidden;">use your phone's back button to exit</div>
   </nav>
+
+  <div class="history-page" id="historyPage">
+    <div class="history-page-header">
+      <button class="back-btn" id="backBtn" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+      <h2>History</h2>
+    </div>
+    <div class="history-page-body" id="historyPageList"></div>
+  </div>
 
   <div class="wrap">
     <div class="card">
@@ -376,7 +442,10 @@
     </div>
 
     <div class="history" id="historySection">
-      <div class="history-head">Recent Calculations</div>
+      <div class="history-head">
+        <span class="label">Recent Calculations</span>
+        <button class="clear-btn" id="clearHistoryBtn">Clear</button>
+      </div>
       <div id="historyList"></div>
     </div>
   </div>
@@ -478,23 +547,28 @@
       return;
     }
     const visible = list.slice(0, 2);
-    const rest = list.slice(2);
-
     let html = visible.map(itemHtml).join("");
-    if (rest.length > 0){
-      html += `<div class="hist-extra" id="histExtra">${rest.map(itemHtml).join("")}</div>`;
-      html += `<button class="hist-toggle" id="histToggle">⌄ Show ${rest.length} more</button>`;
+    if (list.length > visible.length){
+      html += `<button class="show-all-btn" id="showAllBtn">Show All</button>`;
     }
     container.innerHTML = html;
 
-    const toggleBtn = document.getElementById("histToggle");
-    if (toggleBtn){
-      toggleBtn.addEventListener("click", () => {
-        const extra = document.getElementById("histExtra");
-        const open = extra.classList.toggle("open");
-        toggleBtn.innerHTML = open ? `⌃ Show less` : `⌄ Show ${rest.length} more`;
-      });
-    }
+    const showAllBtn = document.getElementById("showAllBtn");
+    if (showAllBtn) showAllBtn.addEventListener("click", openHistoryPage);
+
+    renderHistoryPage();
+  }
+  function renderHistoryPage(){
+    const list = getHistory();
+    const pageContainer = document.getElementById("historyPageList");
+    if (!pageContainer) return;
+    pageContainer.innerHTML = list.length === 0
+      ? `<div class="hist-empty">Your past calculations will appear here</div>`
+      : list.map(itemHtml).join("");
+  }
+  function clearHistory(){
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
   }
   function itemHtml(item){
     return `<div class="hist-item">
@@ -536,12 +610,28 @@
   document.getElementById("menuBtn").addEventListener("click", openDrawer);
   overlay.addEventListener("click", closeDrawer);
 
-  document.getElementById("historyNavBtn").addEventListener("click", () => {
+  /* ---------- history page (full-screen push navigation) ---------- */
+  const historyPage = document.getElementById("historyPage");
+
+  function openHistoryPage(){
     closeDrawer();
-    document.getElementById("historySection").scrollIntoView({ behavior:"smooth", block:"start" });
-    const extra = document.getElementById("histExtra");
-    if (extra) extra.classList.add("open");
+    renderHistoryPage();
+    historyPage.classList.add("open");
+    history.pushState({ page: "history" }, "");
+  }
+  function closeHistoryPage(){
+    historyPage.classList.remove("open");
+  }
+  window.addEventListener("popstate", () => {
+    closeHistoryPage();
   });
+
+  document.getElementById("backBtn").addEventListener("click", () => {
+    history.back();
+  });
+
+  document.getElementById("historyNavBtn").addEventListener("click", openHistoryPage);
+  document.getElementById("clearHistoryBtn").addEventListener("click", clearHistory);
 
   document.getElementById("exitBtn").addEventListener("click", () => {
     window.close();
