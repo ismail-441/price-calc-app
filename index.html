@@ -272,8 +272,10 @@
   }
   .total-box .val{
     font-family:'JetBrains Mono', monospace;
-    font-size:30px;
+    font-size:33px;
     font-weight:800;
+    text-align:right;
+    display:block;
     transition:transform 0.15s ease;
   }
   .total-box .val.pulse{ transform:scale(1.05); }
@@ -308,6 +310,34 @@
   }
   .history-nav .left svg{ color:var(--ink-soft); }
   .history-nav .chevron{ color:var(--ink-faint); }
+
+  .footer-deco{
+    margin-top:28px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    opacity:0.55;
+  }
+  .barcode{
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    gap:2px;
+    height:30px;
+  }
+  .barcode span{
+    display:inline-block;
+    width:2px;
+    background:var(--ink-faint);
+  }
+  .footer-deco .tag{
+    margin-top:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
 
   .clear-btn{
     background:none;
@@ -450,6 +480,11 @@
         <span>History</span>
       </div>
       <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </div>
+
+    <div class="footer-deco">
+      <div class="barcode" id="barcode"></div>
+      <div class="tag">Bill Calculator</div>
     </div>
   </div>
 
@@ -653,8 +688,21 @@
   });
 
   /* ---------- init ---------- */
+  function drawBarcode(){
+    const barcode = document.getElementById("barcode");
+    if (!barcode) return;
+    let html = "";
+    for (let i = 0; i < 36; i++){
+      const w = Math.random() > 0.7 ? 3 : 1.5;
+      const h = 12 + Math.random() * 18;
+      html += `<span style="width:${w}px;height:${h}px;"></span>`;
+    }
+    barcode.innerHTML = html;
+  }
+
   initTheme();
   resetBreakdown();
+  drawBarcode();
 
   if ("serviceWorker" in navigator){
     navigator.serviceWorker.register("sw.js");
