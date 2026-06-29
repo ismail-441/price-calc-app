@@ -585,42 +585,61 @@
     applyTheme(current === "dark" ? "light" : "dark");
   });
 
-  /* ---------- drawer ---------- */
+  /* ---------- drawer + history page share one back-button stack ---------- */
   const drawer = document.getElementById("drawer");
   const overlay = document.getElementById("overlay");
   const menuBtn = document.getElementById("menuBtn");
-  function openDrawer(){ drawer.classList.add("open"); overlay.classList.add("show"); document.body.style.overflow = "hidden"; menuBtn.style.visibility = "hidden"; }
-  function closeDrawer(){ drawer.classList.remove("open"); overlay.classList.remove("show"); document.body.style.overflow = ""; menuBtn.style.visibility = ""; }
-  function toggleDrawer(){
-    if (drawer.classList.contains("open")) closeDrawer();
-    else openDrawer();
-  }
-  menuBtn.addEventListener("click", toggleDrawer);
-  overlay.addEventListener("click", closeDrawer);
-
-  /* ---------- history page (full-screen push navigation) ---------- */
   const historyPage = document.getElementById("historyPage");
+  let currentPanel = "none"; // "none" | "drawer" | "history"
+
+  function showDrawerUI(){ drawer.classList.add("open"); overlay.classList.add("show"); }
+  function hideDrawerUI(){ drawer.classList.remove("open"); overlay.classList.remove("show"); }
+  function showHistoryUI(){ renderHistoryPage(); historyPage.classList.add("open"); }
+  function hideHistoryUI(){ historyPage.classList.remove("open"); }
+  function lockBase(){ document.body.style.overflow = "hidden"; menuBtn.style.visibility = "hidden"; }
+  function restoreBase(){ document.body.style.overflow = ""; menuBtn.style.visibility = ""; }
+
+  function openDrawer(){
+    if (currentPanel === "none") history.pushState({ panel: "drawer" }, "");
+    currentPanel = "drawer";
+    showDrawerUI();
+    lockBase();
+  }
 
   function openHistoryPage(){
-    closeDrawer();
-    renderHistoryPage();
-    historyPage.classList.add("open");
-    document.body.style.overflow = "hidden";
-    menuBtn.style.visibility = "hidden";
-    history.pushState({ page: "history" }, "");
+    if (currentPanel === "none"){
+      history.pushState({ panel: "history" }, "");
+    } else if (currentPanel === "drawer"){
+      history.replaceState({ panel: "history" }, "");
+      hideDrawerUI();
+    }
+    currentPanel = "history";
+    showHistoryUI();
+    lockBase();
   }
-  function closeHistoryPage(){
-    historyPage.classList.remove("open");
-    document.body.style.overflow = "";
-    menuBtn.style.visibility = "";
+
+  // Any user-initiated close (tapping the backdrop, a back arrow, an X) just
+  // goes back one step, the popstate handler below does the actual hiding.
+  // This keeps the browser/app back-button stack and our UI in sync always.
+  function requestClose(){
+    if (currentPanel !== "none") history.back();
   }
+
+  function toggleDrawer(){
+    if (currentPanel === "drawer") requestClose();
+    else if (currentPanel === "none") openDrawer();
+  }
+
   window.addEventListener("popstate", () => {
-    closeHistoryPage();
+    hideDrawerUI();
+    hideHistoryUI();
+    restoreBase();
+    currentPanel = "none";
   });
 
-  document.getElementById("backBtn").addEventListener("click", () => {
-    history.back();
-  });
+  menuBtn.addEventListener("click", toggleDrawer);
+  overlay.addEventListener("click", requestClose);
+  document.getElementById("backBtn").addEventListener("click", requestClose);
 
   document.getElementById("historyNavBtn").addEventListener("click", openHistoryPage);
   document.getElementById("historyNavCard").addEventListener("click", openHistoryPage);
