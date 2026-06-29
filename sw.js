@@ -1,4 +1,4 @@
-const CACHE_NAME = "price-calc-v8";
+const CACHE_NAME = "price-calc-v9";
 const FILES_TO_CACHE = [
   "./",
   "./index.html",

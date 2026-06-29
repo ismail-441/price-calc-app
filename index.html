@@ -260,10 +260,16 @@
     padding:14px 16px;
     margin-top:14px;
     display:flex;
-    flex-direction:column;
-    gap:3px;
+    flex-direction:row;
+    justify-content:space-between;
+    align-items:center;
   }
-  .total-box .cap{
+  .total-label{
+    display:flex;
+    flex-direction:column;
+    line-height:1.2;
+  }
+  .total-label span{
     font-size:11px;
     font-weight:700;
     letter-spacing:1px;
@@ -275,7 +281,6 @@
     font-size:33px;
     font-weight:800;
     text-align:right;
-    display:block;
     transition:transform 0.15s ease;
   }
   .total-box .val.pulse{ transform:scale(1.05); }
@@ -467,7 +472,7 @@
       </div>
 
       <div class="total-box">
-        <span class="cap">Final Total</span>
+        <div class="total-label"><span>Final</span><span>Total</span></div>
         <span class="val" id="total">—</span>
       </div>
 
